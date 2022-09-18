@@ -41,6 +41,9 @@ import Distribution.Types.GenericPackageDescription (GenericPackageDescription (
 import Distribution.Types.Library (Library (..))
 import Distribution.Types.TestSuite (TestSuite (..))
 import Distribution.Types.TestSuiteInterface (TestSuiteInterface (..))
+#if MIN_VERSION_Cabal(3,6,0)
+import Distribution.Utils.Path (getSymbolicPath)
+#endif
 import GHC.LanguageExtensions.Type (Extension (..))
 import System.Directory (doesFileExist)
 import System.FilePath ((<.>), (</>))
@@ -144,7 +147,11 @@ condTreeToExtensions
 condTreeToExtensions extractModules extractBuildInfo condTree = do
     let comp = condTreeData condTree
     let buildInfo = extractBuildInfo comp
+#if MIN_VERSION_Cabal(3,6,0)
+    let srcDirs = map getSymbolicPath (hsSourceDirs buildInfo)
+#else
     let srcDirs = hsSourceDirs buildInfo
+#endif
     let modules = extractModules comp ++
             map toModulePath (otherModules buildInfo ++ autogenModules buildInfo)
     let (safeExts, parsedExtensionsAll) = partitionEithers $ mapMaybe cabalToGhcExtension $ defaultExtensions buildInfo
@@ -340,8 +347,13 @@ toGhcExtension = \case
     Cabal.QualifiedDo     -> Just QualifiedDo
     Cabal.LinearTypes     -> Just LinearTypes
 #endif
+#if __GLASGOW_HASKELL__ >= 902
+    Cabal.FieldSelectors -> Just FieldSelectors
+    Cabal.OverloadedRecordDot -> Just OverloadedRecordDot
+    Cabal.UnliftedDatatypes -> Just UnliftedDatatypes
+#endif
     -- Removed GHC extensions
-#if __GLASGOW_HASKELL__ < 920
+#if __GLASGOW_HASKELL__ < 902
     Cabal.MonadFailDesugaring        -> Just MonadFailDesugaring
 #else
     Cabal.MonadFailDesugaring        -> Nothing

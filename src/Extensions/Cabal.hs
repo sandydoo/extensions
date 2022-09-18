@@ -317,7 +317,6 @@ toGhcExtension = \case
     Cabal.TypeApplications           -> Just TypeApplications
     Cabal.TypeInType                 -> Just TypeInType
     Cabal.UndecidableSuperClasses    -> Just UndecidableSuperClasses
-    Cabal.MonadFailDesugaring        -> Just MonadFailDesugaring
     Cabal.TemplateHaskellQuotes      -> Just TemplateHaskellQuotes
     Cabal.OverloadedLabels           -> Just OverloadedLabels
     Cabal.TypeFamilyDependencies     -> Just TypeFamilyDependencies
@@ -340,6 +339,12 @@ toGhcExtension = \case
     Cabal.LexicalNegation -> Just LexicalNegation
     Cabal.QualifiedDo     -> Just QualifiedDo
     Cabal.LinearTypes     -> Just LinearTypes
+#endif
+    -- Removed GHC extensions
+#if __GLASGOW_HASKELL__ < 920
+    Cabal.MonadFailDesugaring        -> Just MonadFailDesugaring
+#else
+    Cabal.MonadFailDesugaring        -> Nothing
 #endif
     -- GHC extensions, parsed by both Cabal and GHC, but don't have an Extension constructor
     Cabal.Safe                   -> Nothing
